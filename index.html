@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>전세대 맞춤형 보안관 학습 금고</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- 가독성이 높은 무료 구글 폰트들 -->
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&family=Gaegu:wght@400;700&family=Nanum+Gothic+Coding&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --base-font-size: 18px; 
+            --main-font: 'Noto Sans KR', sans-serif;
+        }
+        body {
+            font-family: var(--main-font);
+            background-color: #f8fafc;
+            /* 글자 색상을 더 진하게 하여 명확성 강화 */
+            color: #1e293b; 
+            font-size: var(--base-font-size);
+            transition: all 0.2s ease;
+            line-height: 1.6;
+        }
+        /* 폰트 스타일 모드 */
+        body.font-cute { font-family: 'Gaegu', cursive; }
+        body.font-standard { font-family: 'Noto Sans KR', sans-serif; }
+        body.font-gothic { font-family: 'Nanum Gothic', sans-serif; }
+
+        .level-tab { transition: all 0.3s ease; border: 2px solid transparent; }
+        .level-tab.active {
+            background-color: #0284c7;
+            color: white;
+            border-color: #0ea5e9;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+        }
+        .kids-card {
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: white;
+            border: 2px solid #e2e8f0;
+        }
+        .kids-card:hover {
+            transform: translateY(-5px);
+            border-color: #0ea5e9;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .modal-bg { background-color: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px); }
+        
+        /* 볼드 텍스트 명확화 */
+        b, strong { font-weight: 800; color: #0f172a; }
+
+        #toast {
+            visibility: hidden;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0f172a;
+            color: white;
+            padding: 14px 28px;
+            border-radius: 99px;
+            z-index: 1000;
+            font-weight: bold;
+        }
+        #toast.show { visibility: visible; animation: fadeInUp 0.3s forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-standard">
+
+    <header class="p-4 md:p-6 bg-white border-b-2 border-slate-100 shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-center gap-6">
+            <h1 class="text-3xl font-black text-sky-600 flex items-center gap-2 tracking-tight">
+                <i data-lucide="shield-check" class="w-10 h-10"></i> 무한 보안 금고
+            </h1>
+            
+            <div class="flex flex-wrap justify-center items-center gap-4 bg-slate-50 p-3 rounded-3xl border border-slate-200">
+                <!-- 글꼴 스타일 선택 -->
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-black text-slate-500 uppercase">글꼴 선택</span>
+                    <select id="fontStyleSelect" onchange="changeFontStyle(this.value)" class="bg-white border border-slate-200 rounded-xl px-2 py-1 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-sky-500">
+                        <option value="font-standard">기본(본고딕)</option>
+                        <option value="font-gothic">선명(나눔고딕)</option>
+                        <option value="font-cute">귀염(개구체)</option>
+                    </select>
+                </div>
+                <div class="h-6 w-px bg-slate-200 hidden md:block"></div>
+                <!-- 글자 크기 조절 -->
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-black text-slate-500 uppercase">크기</span>
+                    <input type="range" id="fontSizeRange" min="16" max="36" value="18" class="w-20 md:w-32 accent-sky-600">
+                </div>
+                <div class="h-6 w-px bg-slate-200 hidden md:block"></div>
+                <!-- 난이도 선택 -->
+                <div id="levelTabs" class="flex gap-1 overflow-x-auto">
+                    <button onclick="setLevel('elementary')" class="level-tab px-4 py-1 rounded-xl text-sm font-black active" data-level="elementary">초등(50)</button>
+                    <button onclick="setLevel('middle')" class="level-tab px-4 py-1 rounded-xl text-sm font-black" data-level="middle">중등(100)</button>
+                    <button onclick="setLevel('university')" class="level-tab px-4 py-1 rounded-xl text-sm font-black" data-level="university">대학(150)</button>
+                    <button onclick="setLevel('phd')" class="level-tab px-4 py-1 rounded-xl text-sm font-black" data-level="phd">박사(200)</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl mx-auto w-full p-6 md:p-10">
+        <div class="mb-12 text-center">
+            <h2 id="levelDisplay" class="text-4xl md:text-5xl font-black text-slate-900 mb-4 tracking-tight">🐥 초등학생 보안관 단계</h2>
+            <p id="levelDesc" class="text-lg text-slate-500 font-medium">총 500개 이상의 프롬프트가 여러분의 성장을 기다립니다!</p>
+            <div class="mt-8 flex justify-center">
+                <div class="relative w-full max-w-2xl">
+                    <i data-lucide="search" class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 w-6 h-6"></i>
+                    <input type="text" id="topicSearch" placeholder="궁금한 보안 주제를 검색해보세요..." class="w-full border-2 border-slate-200 rounded-3xl py-4 pl-14 pr-6 focus:outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-50 shadow-sm text-lg font-medium transition-all">
+                </div>
+            </div>
+        </div>
+
+        <div id="cardGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <!-- Cards injected by JS -->
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div id="modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 modal-bg">
+        <div class="bg-white rounded-[3rem] w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div class="p-8 md:p-10 border-b flex justify-between items-start bg-slate-50">
+                <div>
+                    <span id="modalLevelTag" class="text-sm font-black uppercase tracking-widest text-sky-600 mb-2 block">LEVEL TAG</span>
+                    <h3 id="modalTitle" class="text-3xl md:text-4xl font-black text-slate-900 leading-tight"></h3>
+                </div>
+                <button onclick="closeModal()" class="p-3 hover:bg-slate-200 rounded-full transition-colors text-slate-400"><i data-lucide="x" class="w-8 h-8"></i></button>
+            </div>
+            <div class="p-8 md:p-12 overflow-y-auto flex-1 bg-white">
+                <div class="bg-slate-900 rounded-[2rem] p-8 md:p-10 mb-10 relative group border-4 border-slate-800 shadow-xl">
+                    <div class="absolute -top-4 left-8 bg-sky-500 text-white px-4 py-1 rounded-full text-xs font-black uppercase">Magic Prompt</div>
+                    <p id="modalPrompt" class="text-sky-300 font-mono leading-relaxed whitespace-pre-wrap text-xl md:text-2xl"></p>
+                    <button onclick="copyText()" class="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100">
+                        <i data-lucide="copy" class="w-6 h-6"></i>
+                    </button>
+                </div>
+                <div class="p-8 bg-sky-50 rounded-3xl border-2 border-sky-100 flex items-start gap-4">
+                    <div class="bg-sky-500 p-2 rounded-xl text-white mt-1">
+                        <i data-lucide="brain" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-black text-sky-900 text-xl mb-2">학습 전략 가이드</h4>
+                        <p id="modalPoint" class="text-sky-800 text-lg leading-relaxed font-medium"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-8 bg-slate-50 border-t flex flex-col sm:flex-row justify-center gap-4">
+                <button onclick="copyText()" class="px-12 py-5 bg-sky-600 hover:bg-sky-700 text-white rounded-2xl font-black text-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3">
+                    <i data-lucide="copy"></i> 주문 복사하기
+                </button>
+                <button onclick="closeModal()" class="px-12 py-5 bg-white border-2 border-slate-200 hover:bg-slate-100 text-slate-700 rounded-2xl font-black text-2xl transition-all">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast">복사 완료! 이제 AI에게 물어보세요! 🚀</div>
+
+    <script>
+        let currentLevel = 'elementary';
+        
+        const themes = [
+            { id: "auth", title: "인증과 암호", icon: "lock" },
+            { id: "net", title: "네트워크 보호", icon: "wifi" },
+            { id: "malware", title: "악성코드 분석", icon: "bug" },
+            { id: "web", title: "웹 애플리케이션", icon: "globe" },
+            { id: "privacy", title: "개인정보 보호", icon: "user-check" },
+            { id: "social", title: "사회공학 공격", icon: "users" },
+            { id: "cloud", title: "클라우드 보안", icon: "cloud" },
+            { id: "iot", title: "사물인터넷 IoT", icon: "cpu" },
+            { id: "crypto", title: "암호학 원리", icon: "binary" },
+            { id: "incident", title: "사고 대응 IR", icon: "alert-triangle" }
+        ];
+
+        const levelInfo = {
+            elementary: { title: "🐥 초등학생 보안관 (50개)", desc: "비유와 재미있는 이야기로 보안의 기초를 배워요!", count: 5, tag: "EASY" },
+            middle: { title: "🦉 중학생 분석가 (100개)", desc: "보안의 작동 원리와 논리적 구조를 탐구해요.", count: 10, tag: "MEDIUM" },
+            university: { title: "💻 대학생 엔지니어 (150개)", desc: "실제 코드 구현과 취약점 분석 기술을 익혀요.", count: 15, tag: "HARD" },
+            phd: { title: "🔬 박사급 연구원 (200개)", desc: "아키텍처 설계와 이론적 한계, 최신 논문을 분석해요.", count: 20, tag: "EXPERT" }
+        };
+
+        function generatePromptContent(theme, level, index) {
+            const contents = {
+                elementary: {
+                    prompt: `안녕 AI! 나는 ${index}번 초등 보안관이야. '${theme.title}'에 대해 궁금해. 도둑이나 마법사 이야기를 섞어서 아주 쉽게 설명해줄래?`,
+                    point: "기초적인 개념을 일상적인 비유를 통해 이해하고 올바른 보안 습관을 형성합니다."
+                },
+                middle: {
+                    prompt: `'${theme.title}'의 원리를 중학생 수준에서 설명해줘. 특히 ${index}번째 핵심 기능이 어떻게 작동하는지 그림을 그리듯 논리적으로 알려주고, 간단한 퀴즈도 하나 내줘!`,
+                    point: "개념의 논리적 흐름과 시스템의 상호작용 원리를 파악하여 응용력을 기릅니다."
+                },
+                university: {
+                    prompt: `'${theme.title}' 분야에서 자주 발생하는 취약점 사례 ${index}번을 분석하고, 이를 방어하는 시큐어 코딩 샘플 코드를 작성해줘.`,
+                    point: "실전 프로그래밍 능력을 바탕으로 취약점을 식별하고 기술적으로 해결하는 역량을 강화합니다."
+                },
+                phd: {
+                    prompt: `'${theme.title}'의 최신 연구 중 ${index}번째 주요 가설을 비판적으로 검토하고, 제로 트러스트 환경에서 이 모델이 가진 아키텍처적 한계와 개선 방안을 논의해줘.`,
+                    point: "학술적 깊이를 바탕으로 시스템의 근본적인 한계를 분석하고 새로운 보안 모델을 연구합니다."
+                }
+            };
+            return contents[level];
+        }
+
+        function setLevel(level) {
+            currentLevel = level;
+            const info = levelInfo[level];
+            document.getElementById('levelDisplay').textContent = info.title;
+            document.getElementById('levelDesc').textContent = info.desc;
+            
+            document.querySelectorAll('.level-tab').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.level === level);
+            });
+            renderCards();
+        }
+
+        function renderCards() {
+            const grid = document.getElementById('cardGrid');
+            const filter = document.getElementById('topicSearch').value.toLowerCase();
+            const countPerTheme = levelInfo[currentLevel].count;
+            
+            let html = "";
+            themes.forEach(theme => {
+                for (let i = 1; i <= countPerTheme; i++) {
+                    const title = `${theme.title} #${i}`;
+                    if (title.toLowerCase().includes(filter) || theme.title.toLowerCase().includes(filter)) {
+                        html += `
+                            <div onclick="openModal('${theme.id}', ${i})" class="kids-card p-8 rounded-[2rem] cursor-pointer shadow-sm flex flex-col items-center text-center">
+                                <div class="w-16 h-16 bg-sky-50 text-sky-600 rounded-2xl flex items-center justify-center mb-6 border border-sky-100">
+                                    <i data-lucide="${theme.icon}" class="w-8 h-8"></i>
+                                </div>
+                                <h3 class="text-xl font-black text-slate-800 mb-2">${title}</h3>
+                                <p class="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest">${levelInfo[currentLevel].tag}</p>
+                                <div class="mt-auto w-full py-3 bg-slate-50 text-sky-600 rounded-2xl text-sm font-black hover:bg-sky-500 hover:text-white transition-colors">자세히 보기</div>
+                            </div>
+                        `;
+                    }
+                }
+            });
+            grid.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        function changeFontStyle(styleClass) {
+            document.body.classList.remove('font-standard', 'font-gothic', 'font-cute');
+            document.body.classList.add(styleClass);
+        }
+
+        function openModal(themeId, index) {
+            const theme = themes.find(t => t.id === themeId);
+            const content = generatePromptContent(theme, currentLevel, index);
+            
+            document.getElementById('modalTitle').textContent = `${theme.title} 학습 비법 #${index}`;
+            document.getElementById('modalLevelTag').textContent = `${currentLevel.toUpperCase()} ${levelInfo[currentLevel].tag} LEVEL`;
+            document.getElementById('modalPrompt').textContent = content.prompt;
+            document.getElementById('modalPoint').textContent = content.point;
+            
+            document.getElementById('modal').classList.remove('hidden');
+            document.getElementById('modal').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.replace('flex', 'hidden');
+        }
+
+        function copyText() {
+            const text = document.getElementById('modalPrompt').textContent;
+            const temp = document.createElement("textarea");
+            temp.value = text;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+            
+            const t = document.getElementById('toast');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        document.getElementById('fontSizeRange').addEventListener('input', (e) => {
+            document.documentElement.style.setProperty('--base-font-size', e.target.value + 'px');
+            document.body.style.fontSize = e.target.value + 'px';
+        });
+
+        document.getElementById('topicSearch').addEventListener('input', renderCards);
+
+        window.onload = () => {
+            renderCards();
+            lucide.createIcons();
+        };
+    </script>
+</body>
+</html>
